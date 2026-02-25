@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { JoinQueueForm } from "@/components/JoinQueueForm";
 import { QueuePositionCard } from "@/components/QueuePositionCard";
+import { CustomerQueueList } from "@/components/CustomerQueueList";
 import { useQueue } from "@/hooks/useQueue";
 import { Link } from "react-router-dom";
 import { Settings, Clock } from "lucide-react";
@@ -51,7 +52,7 @@ const Index = () => {
       </header>
 
       {/* Main */}
-      <main className="flex-1 flex flex-col items-center justify-center px-4 pb-12">
+      <main className="flex-1 flex flex-col items-center px-4 pb-12 pt-6">
         <div className="text-center mb-8 animate-float-up">
           <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground leading-tight">
             Skip the Wait,
@@ -66,13 +67,16 @@ const Index = () => {
         </div>
 
         {myEntryId && myEntry ? (
-          <QueuePositionCard
-            customerName={myEntry.customer_name}
-            position={position}
-            estimatedWait={estimatedWait}
-            status={myEntry.status}
-            onLeave={handleLeave}
-          />
+          <div className="flex flex-col items-center gap-6 w-full max-w-md">
+            <QueuePositionCard
+              customerName={myEntry.customer_name}
+              position={position}
+              estimatedWait={estimatedWait}
+              status={myEntry.status}
+              onLeave={handleLeave}
+            />
+            <CustomerQueueList entries={entries} myEntryId={myEntryId} />
+          </div>
         ) : myEntryId && !myEntry ? (
           <div className="glass-card rounded-2xl p-8 max-w-md w-full animate-float-up text-center">
             <h2 className="text-xl font-heading font-bold text-foreground mb-2">
@@ -89,7 +93,10 @@ const Index = () => {
             </button>
           </div>
         ) : (
-          <JoinQueueForm onJoin={handleJoin} waitingCount={waitingCount} />
+          <div className="flex flex-col items-center gap-6 w-full max-w-md">
+            <JoinQueueForm onJoin={handleJoin} waitingCount={waitingCount} />
+            <CustomerQueueList entries={entries} myEntryId={null} />
+          </div>
         )}
       </main>
 
@@ -100,5 +107,4 @@ const Index = () => {
     </div>
   );
 };
-
 export default Index;
