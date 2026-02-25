@@ -24,8 +24,20 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
       setError("Please enter your name");
       return;
     }
+    if (/\d/.test(name)) {
+      setError("Name should only contain letters, no digits");
+      return;
+    }
+    if (!/^[a-zA-Z\s'-]+$/.test(name.trim())) {
+      setError("Name should only contain letters, spaces, hyphens or apostrophes");
+      return;
+    }
     if (name.trim().length > 100) {
       setError("Name must be under 100 characters");
+      return;
+    }
+    if (phone && !/^[\d+\-() ]+$/.test(phone.trim())) {
+      setError("Phone should only contain numbers and +, -, (, ) characters");
       return;
     }
 
