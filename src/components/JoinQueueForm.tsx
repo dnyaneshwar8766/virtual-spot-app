@@ -100,6 +100,22 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
         </div>
 
         <div>
+          <Label htmlFor="email" className="text-sm font-medium">Email (optional)</Label>
+          <div className="relative mt-1">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="For turn notifications"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10"
+              maxLength={255}
+            />
+          </div>
+        </div>
+
+        <div>
           <Label htmlFor="partySize" className="text-sm font-medium">Party Size</Label>
           <div className="relative mt-1">
             <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
