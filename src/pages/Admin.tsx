@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useFirstAdminSetup } from "@/hooks/useFirstAdminSetup";
 import { useQueue } from "@/hooks/useQueue";
