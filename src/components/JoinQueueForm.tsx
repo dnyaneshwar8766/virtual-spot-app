@@ -42,9 +42,14 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
       return;
     }
 
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await onJoin(name, phone, parseInt(partySize) || 1);
+      await onJoin(name, phone, parseInt(partySize) || 1, email);
     } catch {
       setError("Failed to join queue. Please try again.");
     } finally {
