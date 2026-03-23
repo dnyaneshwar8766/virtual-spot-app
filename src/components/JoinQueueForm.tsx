@@ -12,6 +12,7 @@ interface JoinQueueFormProps {
 export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [partySize, setPartySize] = useState("1");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
