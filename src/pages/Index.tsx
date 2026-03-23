@@ -2,35 +2,43 @@ import { useState } from "react";
 import { JoinQueueForm } from "@/components/JoinQueueForm";
 import { QueuePositionCard } from "@/components/QueuePositionCard";
 import { CustomerQueueList } from "@/components/CustomerQueueList";
+import { FeedbackForm } from "@/components/FeedbackForm";
 import { useQueue } from "@/hooks/useQueue";
+import { useSmartWaitTime } from "@/hooks/useSmartWaitTime";
 import { Link } from "react-router-dom";
 import { Settings, Clock } from "lucide-react";
 
 const Index = () => {
-  const { entries, joinQueue, getPosition, getEstimatedWait, waitingCount } = useQueue();
+  const { entries, joinQueue, getPosition, waitingCount } = useQueue();
+  const { avgServiceTime, getSmartEstimate } = useSmartWaitTime();
   const [myEntryId, setMyEntryId] = useState<string | null>(() => {
     return localStorage.getItem("queueEntryId");
+  });
+  const [myName, setMyName] = useState<string>(() => {
+    return localStorage.getItem("queueCustomerName") || "";
   });
 
   const myEntry = entries.find((e) => e.id === myEntryId);
   const position = myEntryId ? getPosition(myEntryId) : null;
-  const estimatedWait = getEstimatedWait(position);
+  const estimatedWait = getSmartEstimate(position);
 
-  const handleJoin = async (name: string, phone?: string, partySize?: number) => {
-    const entry = await joinQueue(name, phone, partySize);
+  const handleJoin = async (name: string, phone?: string, partySize?: number, email?: string) => {
+    const entry = await joinQueue(name, phone, partySize, email);
     setMyEntryId(entry.id);
+    setMyName(name);
     localStorage.setItem("queueEntryId", entry.id);
+    localStorage.setItem("queueCustomerName", name);
   };
 
   const handleLeave = () => {
     setMyEntryId(null);
+    setMyName("");
     localStorage.removeItem("queueEntryId");
+    localStorage.removeItem("queueCustomerName");
   };
 
-  // If the entry no longer exists in active entries, clear it
-  if (myEntryId && !myEntry) {
-    // entry was served or removed
-  }
+  // Check if user was served (entry no longer in active queue)
+  const wasServed = myEntryId && !myEntry;
 
   return (
     <div className="min-h-screen gradient-hero flex flex-col">
@@ -64,6 +72,11 @@ const Index = () => {
           <p className="text-muted-foreground mt-3 max-w-md mx-auto">
             Join the virtual queue from your phone. We'll let you know when it's your turn.
           </p>
+          {avgServiceTime !== 5 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Current avg service time: ~{avgServiceTime} min/person
+            </p>
+          )}
         </div>
 
         {myEntryId && myEntry ? (
@@ -75,27 +88,18 @@ const Index = () => {
               status={myEntry.status}
               onLeave={handleLeave}
             />
-            <CustomerQueueList entries={entries} myEntryId={myEntryId} />
+            <CustomerQueueList entries={entries} myEntryId={myEntryId} avgServiceTime={avgServiceTime} />
           </div>
-        ) : myEntryId && !myEntry ? (
-          <div className="glass-card rounded-2xl p-8 max-w-md w-full animate-float-up text-center">
-            <h2 className="text-xl font-heading font-bold text-foreground mb-2">
-              You've Been Served! 🎉
-            </h2>
-            <p className="text-muted-foreground mb-4">
-              Thanks for using LineUp. Hope you had a great experience!
-            </p>
-            <button
-              onClick={handleLeave}
-              className="text-primary hover:underline font-medium"
-            >
-              Join again
-            </button>
-          </div>
+        ) : wasServed ? (
+          <FeedbackForm
+            queueEntryId={myEntryId!}
+            customerName={myName || "Customer"}
+            onDone={handleLeave}
+          />
         ) : (
           <div className="flex flex-col items-center gap-6 w-full max-w-md">
             <JoinQueueForm onJoin={handleJoin} waitingCount={waitingCount} />
-            <CustomerQueueList entries={entries} myEntryId={null} />
+            <CustomerQueueList entries={entries} myEntryId={null} avgServiceTime={avgServiceTime} />
           </div>
         )}
       </main>
