@@ -124,7 +124,9 @@ export function CustomerQueueList({ entries, myEntryId, avgServiceTime = 5 }: Cu
                   </div>
                   {isMe && (
                     <span className="text-xs text-primary font-semibold shrink-0">
-                      ~{(index + 1) * 5} min
+                      ~{Math.ceil((index + 1) * avgServiceTime)} min
+                    </span>
+                  )}
                     </span>
                   )}
                 </div>
