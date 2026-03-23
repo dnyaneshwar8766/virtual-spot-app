@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
-import { ArrowLeft, LogOut, Clock, Users, Timer } from "lucide-react";
+import { ArrowLeft, LogOut, Clock, Users, Timer, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 const Admin = () => {
