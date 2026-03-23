@@ -6,9 +6,10 @@ type QueueEntry = Tables<"queue_entries">;
 interface CustomerQueueListProps {
   entries: QueueEntry[];
   myEntryId: string | null;
+  avgServiceTime?: number;
 }
 
-export function CustomerQueueList({ entries, myEntryId }: CustomerQueueListProps) {
+export function CustomerQueueList({ entries, myEntryId, avgServiceTime = 5 }: CustomerQueueListProps) {
   const waitingEntries = entries.filter((e) => e.status === "waiting");
   const servingEntries = entries.filter((e) => e.status === "serving");
 
@@ -123,7 +124,7 @@ export function CustomerQueueList({ entries, myEntryId }: CustomerQueueListProps
                   </div>
                   {isMe && (
                     <span className="text-xs text-primary font-semibold shrink-0">
-                      ~{(index + 1) * 5} min
+                      ~{Math.ceil((index + 1) * avgServiceTime)} min
                     </span>
                   )}
                 </div>

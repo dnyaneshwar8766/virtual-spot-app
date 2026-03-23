@@ -40,13 +40,14 @@ export function useQueue() {
     };
   }, [fetchEntries]);
 
-  const joinQueue = async (customerName: string, phone?: string, partySize?: number) => {
+  const joinQueue = async (customerName: string, phone?: string, partySize?: number, email?: string) => {
     const { data, error } = await supabase
       .from("queue_entries")
       .insert({
         customer_name: customerName.trim(),
         phone: phone?.trim() || null,
         party_size: partySize || 1,
+        email: email?.trim() || null,
       })
       .select()
       .single();

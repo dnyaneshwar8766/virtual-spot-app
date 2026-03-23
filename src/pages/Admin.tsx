@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link } from "react-router-dom";
-import { ArrowLeft, LogOut, Clock, Users, Timer } from "lucide-react";
+import { ArrowLeft, LogOut, Clock, Users, Timer, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
 const Admin = () => {
@@ -183,9 +183,16 @@ const Admin = () => {
             <span className="font-heading font-bold text-lg">LineUp Admin</span>
           </div>
         </div>
-        <Button variant="ghost" onClick={signOut} size="sm" className="gap-2 text-muted-foreground">
-          <LogOut className="w-4 h-4" /> Sign Out
-        </Button>
+        <div className="flex items-center gap-2">
+          <Link to="/analytics">
+            <Button variant="outline" size="sm" className="gap-2">
+              <BarChart3 className="w-4 h-4" /> Analytics
+            </Button>
+          </Link>
+          <Button variant="ghost" onClick={signOut} size="sm" className="gap-2 text-muted-foreground">
+            <LogOut className="w-4 h-4" /> Sign Out
+          </Button>
+        </div>
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8">

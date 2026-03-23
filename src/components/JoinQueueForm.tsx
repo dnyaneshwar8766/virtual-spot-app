@@ -2,16 +2,17 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Phone, User } from "lucide-react";
+import { Users, Phone, User, Mail } from "lucide-react";
 
 interface JoinQueueFormProps {
-  onJoin: (name: string, phone?: string, partySize?: number) => Promise<void>;
+  onJoin: (name: string, phone?: string, partySize?: number, email?: string) => Promise<void>;
   waitingCount: number;
 }
 
 export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [partySize, setPartySize] = useState("1");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -41,9 +42,14 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
       return;
     }
 
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      setError("Please enter a valid email address");
+      return;
+    }
+
     setSubmitting(true);
     try {
-      await onJoin(name, phone, parseInt(partySize) || 1);
+      await onJoin(name, phone, parseInt(partySize) || 1, email);
     } catch {
       setError("Failed to join queue. Please try again.");
     } finally {
@@ -89,6 +95,22 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
               onChange={(e) => setPhone(e.target.value)}
               className="pl-10"
               maxLength={20}
+            />
+          </div>
+        </div>
+
+        <div>
+          <Label htmlFor="email" className="text-sm font-medium">Email (optional)</Label>
+          <div className="relative mt-1">
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              id="email"
+              type="email"
+              placeholder="For turn notifications"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="pl-10"
+              maxLength={255}
             />
           </div>
         </div>
