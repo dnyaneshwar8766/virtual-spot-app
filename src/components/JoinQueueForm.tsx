@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Users, Phone, User } from "lucide-react";
 
 interface JoinQueueFormProps {
-  onJoin: (name: string, phone?: string, partySize?: number) => Promise<void>;
+  onJoin: (name: string, phone?: string, partySize?: number, email?: string) => Promise<void>;
   waitingCount: number;
 }
 
