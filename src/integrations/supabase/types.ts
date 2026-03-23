@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          customer_name: string
+          id: string
+          queue_entry_id: string
+          rating: number
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          customer_name: string
+          id?: string
+          queue_entry_id: string
+          rating: number
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          customer_name?: string
+          id?: string
+          queue_entry_id?: string
+          rating?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -36,6 +63,7 @@ export type Database = {
         Row: {
           created_at: string
           customer_name: string
+          email: string | null
           entered_at: string
           id: string
           notes: string | null
@@ -47,6 +75,7 @@ export type Database = {
         Insert: {
           created_at?: string
           customer_name: string
+          email?: string | null
           entered_at?: string
           id?: string
           notes?: string | null
@@ -58,6 +87,7 @@ export type Database = {
         Update: {
           created_at?: string
           customer_name?: string
+          email?: string | null
           entered_at?: string
           id?: string
           notes?: string | null
