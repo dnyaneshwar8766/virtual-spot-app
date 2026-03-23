@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Phone, User } from "lucide-react";
+import { Users, Phone, User, Mail } from "lucide-react";
 
 interface JoinQueueFormProps {
   onJoin: (name: string, phone?: string, partySize?: number, email?: string) => Promise<void>;
