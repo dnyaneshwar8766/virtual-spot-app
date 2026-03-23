@@ -9,7 +9,7 @@ interface CustomerQueueListProps {
   avgServiceTime?: number;
 }
 
-export function CustomerQueueList({ entries, myEntryId }: CustomerQueueListProps) {
+export function CustomerQueueList({ entries, myEntryId, avgServiceTime = 5 }: CustomerQueueListProps) {
   const waitingEntries = entries.filter((e) => e.status === "waiting");
   const servingEntries = entries.filter((e) => e.status === "serving");
 
