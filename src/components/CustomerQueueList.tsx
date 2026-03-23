@@ -6,6 +6,7 @@ type QueueEntry = Tables<"queue_entries">;
 interface CustomerQueueListProps {
   entries: QueueEntry[];
   myEntryId: string | null;
+  avgServiceTime?: number;
 }
 
 export function CustomerQueueList({ entries, myEntryId }: CustomerQueueListProps) {
