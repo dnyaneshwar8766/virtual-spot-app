@@ -4,7 +4,11 @@ import { useAuth } from "@/hooks/useAuth";
 import { useFirstAdminSetup } from "@/hooks/useFirstAdminSetup";
 import { useQueue } from "@/hooks/useQueue";
 import { useAdminQueue } from "@/hooks/useAdminQueue";
+import { useQueueSettings } from "@/hooks/useQueueSettings";
 import { AdminQueueTable } from "@/components/AdminQueueTable";
+import { QueueSettingsPanel } from "@/components/QueueSettingsPanel";
+import { QRCodeDisplay } from "@/components/QRCodeDisplay";
+import { ExportButton } from "@/components/ExportButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,24 +16,95 @@ import { Link } from "react-router-dom";
 import { ArrowLeft, LogOut, Clock, Users, Timer, BarChart3 } from "lucide-react";
 import { toast } from "sonner";
 
+const AdminLoginForm = ({ onAuth, authError }: { onAuth: (email: string, password: string, isSignUp: boolean) => Promise<void>; authError: string }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const [authLoading, setAuthLoading] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthLoading(true);
+    try {
+      await onAuth(email, password, isSignUp);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-4">
+      <Link to="/" className="absolute top-4 left-4 text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm">
+        <ArrowLeft className="w-4 h-4" /> Back
+      </Link>
+      <div className="glass-card rounded-2xl p-8 max-w-sm w-full animate-float-up">
+        <div className="text-center mb-6">
+          <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mx-auto mb-3">
+            <Clock className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <h2 className="text-xl font-heading font-bold">Admin Login</h2>
+          <p className="text-muted-foreground text-sm mt-1">Manage your queue</p>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="email">Email</Label>
+            <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required maxLength={255} className="mt-1" />
+          </div>
+          <div>
+            <Label htmlFor="password">Password</Label>
+            <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="mt-1" />
+          </div>
+          {authError && <p className="text-destructive text-sm">{authError}</p>}
+          <Button type="submit" disabled={authLoading} className="w-full gradient-primary text-primary-foreground">
+            {authLoading ? "..." : isSignUp ? "Sign Up" : "Sign In"}
+          </Button>
+        </form>
+        {!isSignUp && (
+          <div className="text-center mt-2">
+            <button
+              type="button"
+              onClick={async () => {
+                const emailInput = (document.getElementById("email") as HTMLInputElement)?.value;
+                if (!emailInput) { toast.error("Please enter your email first"); return; }
+                try {
+                  const { error } = await supabase.auth.resetPasswordForEmail(emailInput, {
+                    redirectTo: `${window.location.origin}/reset-password`,
+                  });
+                  if (error) throw error;
+                  toast.success("Password reset email sent!");
+                } catch (err: any) {
+                  toast.error(err.message || "Failed to send reset email");
+                }
+              }}
+              className="text-sm text-muted-foreground hover:text-primary hover:underline"
+            >
+              Forgot password?
+            </button>
+          </div>
+        )}
+        <p className="text-center text-sm text-muted-foreground mt-4">
+          {isSignUp ? "Already have an account?" : "Need an account?"}{" "}
+          <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-medium">
+            {isSignUp ? "Sign In" : "Sign Up"}
+          </button>
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const Admin = () => {
   const { user, isAdmin, loading, signIn, signUp, signOut } = useAuth();
   useFirstAdminSetup(user?.id);
   const { entries, waitingCount } = useQueue();
   const { markServing, markServed, removeFromQueue } = useAdminQueue();
-
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
-  const [authLoading, setAuthLoading] = useState(false);
+  const { settings, isQueueOpen, togglePause, updateSettings } = useQueueSettings();
   const [authError, setAuthError] = useState("");
 
   const servingCount = entries.filter((e) => e.status === "serving").length;
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleAuth = async (email: string, password: string, isSignUp: boolean) => {
     setAuthError("");
-    setAuthLoading(true);
     try {
       if (isSignUp) {
         await signUp(email, password);
@@ -39,8 +114,6 @@ const Admin = () => {
       }
     } catch (err: any) {
       setAuthError(err.message || "Authentication failed");
-    } finally {
-      setAuthLoading(false);
     }
   };
 
@@ -61,105 +134,14 @@ const Admin = () => {
     );
   }
 
-  // Not logged in
-  if (!user) {
-    return (
-      <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-4">
-        <Link to="/" className="absolute top-4 left-4 text-muted-foreground hover:text-foreground flex items-center gap-1 text-sm">
-          <ArrowLeft className="w-4 h-4" /> Back
-        </Link>
+  if (!user) return <AdminLoginForm onAuth={handleAuth} authError={authError} />;
 
-        <div className="glass-card rounded-2xl p-8 max-w-sm w-full animate-float-up">
-          <div className="text-center mb-6">
-            <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center mx-auto mb-3">
-              <Clock className="w-6 h-6 text-primary-foreground" />
-            </div>
-            <h2 className="text-xl font-heading font-bold">Admin Login</h2>
-            <p className="text-muted-foreground text-sm mt-1">Manage your queue</p>
-          </div>
-
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                maxLength={255}
-                className="mt-1"
-              />
-            </div>
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                className="mt-1"
-              />
-            </div>
-
-            {authError && <p className="text-destructive text-sm">{authError}</p>}
-
-            <Button type="submit" disabled={authLoading} className="w-full gradient-primary text-primary-foreground">
-              {authLoading ? "..." : isSignUp ? "Sign Up" : "Sign In"}
-            </Button>
-          </form>
-
-          {!isSignUp && (
-            <div className="text-center mt-2">
-              <button
-                type="button"
-                onClick={async () => {
-                  if (!email) {
-                    toast.error("Please enter your email first");
-                    return;
-                  }
-                  try {
-                    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                      redirectTo: `${window.location.origin}/reset-password`,
-                    });
-                    if (error) throw error;
-                    toast.success("Password reset email sent! Check your inbox.");
-                  } catch (err: any) {
-                    toast.error(err.message || "Failed to send reset email");
-                  }
-                }}
-                className="text-sm text-muted-foreground hover:text-primary hover:underline"
-              >
-                Forgot password?
-              </button>
-            </div>
-          )}
-
-          <p className="text-center text-sm text-muted-foreground mt-4">
-            {isSignUp ? "Already have an account?" : "Need an account?"}{" "}
-            <button
-              onClick={() => { setIsSignUp(!isSignUp); setAuthError(""); }}
-              className="text-primary hover:underline font-medium"
-            >
-              {isSignUp ? "Sign In" : "Sign Up"}
-            </button>
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Logged in but not admin
   if (!isAdmin) {
     return (
       <div className="min-h-screen gradient-hero flex flex-col items-center justify-center px-4">
         <div className="glass-card rounded-2xl p-8 max-w-sm w-full text-center animate-float-up">
           <h2 className="text-xl font-heading font-bold mb-2">Access Denied</h2>
-          <p className="text-muted-foreground mb-4">
-            Your account doesn't have admin privileges. Contact the business owner to get access.
-          </p>
+          <p className="text-muted-foreground mb-4">Your account doesn't have admin privileges.</p>
           <Button variant="outline" onClick={signOut} className="gap-2">
             <LogOut className="w-4 h-4" /> Sign Out
           </Button>
@@ -168,7 +150,6 @@ const Admin = () => {
     );
   }
 
-  // Admin dashboard
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border px-6 py-4 flex items-center justify-between">
@@ -183,7 +164,9 @@ const Admin = () => {
             <span className="font-heading font-bold text-lg">LineUp Admin</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <QRCodeDisplay />
+          <ExportButton />
           <Link to="/analytics">
             <Button variant="outline" size="sm" className="gap-2">
               <BarChart3 className="w-4 h-4" /> Analytics
@@ -196,6 +179,16 @@ const Admin = () => {
       </header>
 
       <main className="max-w-3xl mx-auto px-4 py-8">
+        {/* Queue Controls */}
+        <div className="mb-6">
+          <QueueSettingsPanel
+            settings={settings}
+            isQueueOpen={isQueueOpen}
+            onTogglePause={togglePause}
+            onUpdateSettings={updateSettings}
+          />
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4 mb-8">
           <div className="glass-card rounded-xl p-4 text-center">

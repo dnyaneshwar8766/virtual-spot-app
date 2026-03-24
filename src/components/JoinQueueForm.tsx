@@ -2,10 +2,11 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Users, Phone, User, Mail } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Users, Phone, User, Mail, Crown } from "lucide-react";
 
 interface JoinQueueFormProps {
-  onJoin: (name: string, phone?: string, partySize?: number, email?: string) => Promise<void>;
+  onJoin: (name: string, phone?: string, partySize?: number, email?: string, priority?: string) => Promise<void>;
   waitingCount: number;
 }
 
@@ -14,6 +15,7 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [partySize, setPartySize] = useState("1");
+  const [isPriority, setIsPriority] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,7 +43,6 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
       setError("Phone should only contain numbers and +, -, (, ) characters");
       return;
     }
-
     if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       setError("Please enter a valid email address");
       return;
@@ -49,7 +50,7 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
 
     setSubmitting(true);
     try {
-      await onJoin(name, phone, parseInt(partySize) || 1, email);
+      await onJoin(name, phone, parseInt(partySize) || 1, email, isPriority ? "priority" : "normal");
     } catch {
       setError("Failed to join queue. Please try again.");
     } finally {
@@ -84,29 +85,46 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="phone" className="text-sm font-medium">Phone (optional)</Label>
-          <div className="relative mt-1">
-            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              id="phone"
-              placeholder="For notifications"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              className="pl-10"
-              maxLength={20}
-            />
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <Label htmlFor="phone" className="text-sm font-medium">Phone</Label>
+            <div className="relative mt-1">
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                id="phone"
+                placeholder="Optional"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="pl-10"
+                maxLength={20}
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor="partySize" className="text-sm font-medium">Party Size</Label>
+            <div className="relative mt-1">
+              <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                id="partySize"
+                type="number"
+                min={1}
+                max={20}
+                value={partySize}
+                onChange={(e) => setPartySize(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
         </div>
 
         <div>
-          <Label htmlFor="email" className="text-sm font-medium">Email (optional)</Label>
+          <Label htmlFor="email" className="text-sm font-medium">Email (for notifications)</Label>
           <div className="relative mt-1">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               id="email"
               type="email"
-              placeholder="For turn notifications"
+              placeholder="Optional"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10"
@@ -115,20 +133,16 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
           </div>
         </div>
 
-        <div>
-          <Label htmlFor="partySize" className="text-sm font-medium">Party Size</Label>
-          <div className="relative mt-1">
-            <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              id="partySize"
-              type="number"
-              min={1}
-              max={20}
-              value={partySize}
-              onChange={(e) => setPartySize(e.target.value)}
-              className="pl-10"
-            />
+        {/* Priority Toggle */}
+        <div className="flex items-center justify-between p-3 rounded-xl bg-warning/5 border border-warning/20">
+          <div className="flex items-center gap-2">
+            <Crown className="w-4 h-4 text-warning" />
+            <div>
+              <p className="text-sm font-medium">Priority / VIP</p>
+              <p className="text-xs text-muted-foreground">Skip ahead in the queue</p>
+            </div>
           </div>
+          <Switch checked={isPriority} onCheckedChange={setIsPriority} />
         </div>
 
         {error && <p className="text-destructive text-sm">{error}</p>}
@@ -138,7 +152,7 @@ export function JoinQueueForm({ onJoin, waitingCount }: JoinQueueFormProps) {
           disabled={submitting}
           className="w-full gradient-primary text-primary-foreground font-semibold py-6 text-base rounded-xl hover:opacity-90 transition-opacity"
         >
-          {submitting ? "Joining..." : "Join Queue"}
+          {submitting ? "Joining..." : isPriority ? "Join as VIP ⚡" : "Join Queue"}
         </Button>
       </form>
     </div>
