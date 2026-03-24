@@ -16,7 +16,14 @@ export function useQueue() {
       .order("entered_at", { ascending: true });
 
     if (!error && data) {
-      setEntries(data);
+      // Sort: priority first, then by entered_at
+      const sorted = [...data].sort((a, b) => {
+        const aPriority = (a as any).priority === "priority" ? 0 : 1;
+        const bPriority = (b as any).priority === "priority" ? 0 : 1;
+        if (aPriority !== bPriority) return aPriority - bPriority;
+        return new Date(a.entered_at).getTime() - new Date(b.entered_at).getTime();
+      });
+      setEntries(sorted);
     }
     setLoading(false);
   }, []);
@@ -40,7 +47,7 @@ export function useQueue() {
     };
   }, [fetchEntries]);
 
-  const joinQueue = async (customerName: string, phone?: string, partySize?: number, email?: string) => {
+  const joinQueue = async (customerName: string, phone?: string, partySize?: number, email?: string, priority?: string) => {
     const { data, error } = await supabase
       .from("queue_entries")
       .insert({
@@ -48,7 +55,8 @@ export function useQueue() {
         phone: phone?.trim() || null,
         party_size: partySize || 1,
         email: email?.trim() || null,
-      })
+        priority: priority || "normal",
+      } as any)
       .select()
       .single();
 
@@ -64,7 +72,7 @@ export function useQueue() {
 
   const getEstimatedWait = (position: number | null) => {
     if (!position) return null;
-    const avgMinutes = 5; // avg 5 min per person
+    const avgMinutes = 5;
     return position * avgMinutes;
   };
 
